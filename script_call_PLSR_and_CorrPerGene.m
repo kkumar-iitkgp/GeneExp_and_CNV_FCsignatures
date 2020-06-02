@@ -5,7 +5,7 @@
 %  deletion and 22q11.2 deletion.
 
 %%
-% Kuldeep Kumar
+% Kuldeep Kumar, Moreau Clara, Sebastien Jacquemont.
 % 31 May 2020
 % 
 % Please cite: Moreau, Clara, et al. "Neuropsychiatric mutations delineate functional brain connectivity dimensions contributing to autism and schizophrenia." BioRxiv (2019): 862615.
