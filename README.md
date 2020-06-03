@@ -2,7 +2,8 @@
  
 Scripts for reproducing results for association between AHBA Gene expression spatial patterns and FC signatures for 16p11.2
 deletion and 22q11.2 deletion. 
-Please cite: [Moreau, Clara, et al. "Neuropsychiatric mutations delineate functional brain connectivity dimensions contributing to autism and schizophrenia." BioRxiv (2019): 862615](https://www.biorxiv.org/content/10.1101/862615v1).
+Please cite: [Moreau, Clara*, Urchs, Sebastian*, et al. "Neuropsychiatric mutations delineate functional brain connectivity dimensions contributing to autism and schizophrenia." BioRxiv (2019): 862615](https://www.biorxiv.org/content/10.1101/862615v1).
+
 
 ## Dependencies
 The code is written in [MATLAB](https://www.mathworks.com/products/matlab.html), and also includes the data required to reproduce the reported analysis and stats. The scripts can be run directly to reproduce the Partial Least Square Regression (PLSR) analysis and Correlatio per Gene analysis. In addition a R script is included to make Histogram plots using [ggplot2](https://ggplot2.tidyverse.org/) and [ggrepel](https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html).
