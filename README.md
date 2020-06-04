@@ -10,22 +10,22 @@ The code is written in [MATLAB](https://www.mathworks.com/products/matlab.html),
 
 ## Analysis
 To call Partial Least Square Regression (PLSR) and Correlation Per Gene analysis.
->**_Run:_** script_call_PLSR_and_CorrPerGene.m
+>**_Run:_** `script_call_PLSR_and_CorrPerGene.m`
 
 This will call the following scripts: 
 
->**_1:_** code/script1_call_PLSR_nodal_and_regional.m 
+>**_1:_** `code/script1_call_PLSR_nodal_and_regional.m`
 
 and then 
 
->**_2:_** code/script2_call_CorrPerGene.m
+>**_2:_** `code/script2_call_CorrPerGene.m`
 
-The PLSR results (Percentage Variance (PCTVAR) explained and p-value), as well as CorrPerGene results (Corr, p-value, FDR p-value) are saved as .xlsx files in the **data** folder. 
+The PLSR results (Percentage Variance (PCTVAR) explained and p-value), as well as CorrPerGene results (Pearson r, p-value, FDR p-value) are saved as .xlsx files in the `data` folder. 
 Finally, the histogram plots for CorrPerGene with Gene names for 16p11.2 (or 22q11.2) region genes can be made using 
 
->**_3:_** code/scriptR_plot_HistogramCorrPerGene_16p22q.R
+>**_3:_** `code/scriptR_plot_HistogramCorrPerGene_16p22q.R`
 
-and are saved in **plots** folder. Most of the data as well as output of the analysis are already included in **data** and **plots** folders for reference. 
+and are saved in `plots` folder. Most of the data as well as output of the analysis are already included in `data` and `plots` folders for reference. 
 
 ## Additional citation for references
 GeneExpression data: We used abagen toolbox ([Markello et al. 2020](https://abagen.readthedocs.io/en/stable/index.html)) and the guidelines in (Arnatkevic̆iūtė, Aurina et al. 2019) to align gene expression data in the adult human cortex from the Allen Human Brain Atlas ([AHBA](https://human.brain-map.org/)) dataset (Hawrylycz et al. 2012) to [MIST64 brain parcellation](https://doi.org/10.12688/mniopenres.12767.2). Please cite the following references if you use the gene expression data:
