@@ -11,8 +11,8 @@
 # set wd
 #-----------------------------------------------------------------------
 
-# set the working directory
-in_wd <- 'D:/SSDN_KD/SSDN_Postdoc/Temp_Analysis/AHBA_analysis_MIST_apr2020/code_and_script_for_publication/code'
+# SET the Working DIRECTORY
+in_wd <- 'D:/SSDN_KD/SSDN_Postdoc/Temp_Analysis/AHBA_analysis_MIST_apr2020/GeneExp_and_CNV_FCsignatures/code'
 setwd(in_wd)
 
 # specify the data and plots directories
@@ -33,7 +33,7 @@ library(tidyverse)
 #-----------------------------------------------------------------------
 
 
-fHistPlot_save_png <- function(plot_file_name,in_df_hist,key.gns,in_nbins){
+fHistPlot_save_png <- function(plot_file_name,in_df_hist,in_xlabel,in_ylabel,key.gns,in_nbins){
   
   # define plot width, height and resolution
   in_width <- 0.8*8
@@ -76,7 +76,7 @@ fHistPlot_save_png <- function(plot_file_name,in_df_hist,key.gns,in_nbins){
       coord_cartesian(xlim=c(xlim1,xlim2),ylim=c(ylim1,ylim2))+
       geom_histogram(bins = in_nbins,linetype="dashed", fill = "lightblue", 
                      alpha = 0.5, color = "gray") +
-      xlab("Correlation (r)") +  ylab("Number of genes") +
+      xlab(in_xlabel) +  ylab(in_ylabel) +
       # add select gene names (text using geom_text_repel) 
       geom_text_repel(data =label_df, aes(label = obs_labels, y = n, size= pval),   
                       fontface = "bold", min.segment.length = 0,  # Draw all lines  
@@ -140,6 +140,10 @@ in_nbins <- 100
 list_CorrPerGene_set <- c("FC16pdel","FC22qdel")
 list_CNVgene_set <- c("Genes16p","Genes22q")
 
+# xlabel and ylabel (fixed) to be used
+list_xlabel <- c("Correlation with 16p11.2 FC profile","Correlation with 22q11.2 FC profile")
+in_ylabel <- "Number of genes"
+
 #--------------------------------------------------------------------------------
 # 4. Make histograms
 #--------------------------------------------------------------------------------
@@ -151,6 +155,8 @@ for(loop_c in c(1:length(list_CorrPerGene_set)))
   in_df_hist$gene <- gene_set_all[,1]
   in_df_hist$pval <- -1*log10(as.numeric(in_data_pval[,loop_c])) # p-values in -log10 scale
   names(in_df_hist) <- c("Corr","gene","pval")
+  
+  in_xlabel <- list_xlabel[loop_c]
 
   # loop over CNVgene sets: genes names to be highlighted in the histogram
   for( loop_g in c(1:length(list_CNVgene_set)))
@@ -169,7 +175,7 @@ for(loop_c in c(1:length(list_CorrPerGene_set)))
     plot_file_name <- paste0(plots_dir,"/hist_CorrPerGene_",list_CorrPerGene_set[loop_c],"_v_",list_CNVgene_set[loop_g],".png")
     
     # call the function to make histogram + show gene names
-    fHistPlot_save_png(plot_file_name,in_df_hist,key.gns,in_nbins)
+    fHistPlot_save_png(plot_file_name,in_df_hist,in_xlabel,in_ylabel,key.gns,in_nbins)
     
   }
   

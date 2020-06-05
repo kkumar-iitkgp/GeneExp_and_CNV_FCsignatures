@@ -10,9 +10,12 @@
 % Step1: load data: GeneExpression, FC beta maps, and CNVgeneSets
 % Step2: compute CorrPerGene 
 %        *(use pre-computed Label-Shuffle null FC maps to compute p-value)
-%        -> save .xslx file with Corr, pval, pval-fdr, CentilesCorr
-%        -> use "scriptR_plot_HistogramCorrPerGene_16p22q.R" to make
-%        histogram plots for Correlations 
+%        -> save .xslx file with Corr, pval, pval-fdr, CentilesCorr for all
+%        15633 genes (Genomewide)
+%        -> save .xslx file with Corr, pval, pval-FDR, CentilesCorrfor,
+%           pval-FDR-CNVgenes for 16p11.2 and 22q11.2 CNV gene sets
+%        %%%Run externally:<"scriptR_plot_HistogramCorrPerGene_16p22q.R" 
+%                       to make histogram plots for Correlations>
 % Step3: compute stats: a) median Corr per CNVgeneSet 
 %                       b) Extreme Rank (mean correlation for CNVgenes > 95th percentile for all genes)
 %
@@ -95,22 +98,71 @@ for i=1:nMriMaps
     count_genes_signif_pval_fdr(1,i) = length(find(cell_pval_fdr{1,i}(:) < 0.05));
 end
 
-% make tables for corr, pval, pval_fdr
+% make tables for corr, pval, pval_fdr, and Corr_Centiles
 table_corr = array2table(cell2mat(cell_corr),'VariableNames',cell_FC_beta_map_names,'RowNames',GeneSymbAll);
 table_corr_pval = array2table(cell2mat(cell_pval),'VariableNames',cell_FC_beta_map_names,'RowNames',GeneSymbAll);
 table_corr_pval_fdr = array2table(cell2mat(cell_pval_fdr),'VariableNames',cell_FC_beta_map_names,'RowNames',GeneSymbAll);
 table_corr_centile = array2table(cell2mat(cell_corr_centiles),'VariableNames',cell_FC_beta_map_names,'RowNames',GeneSymbAll);
 
-% save as excel sheets
-xlsx_Filename = [data_dir '/tab_CorrPerGene_Pval_16p22q_MIST64.xlsx'];
-sheet_name = 'Corr';
-writetable(table_corr,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true)
-sheet_name = 'Pval';
-writetable(table_corr_pval,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true)
-sheet_name = 'FDRPval';
-writetable(table_corr_pval_fdr,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true)
-sheet_name = 'CentilesCorr';
-writetable(table_corr_centile,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true)
+% save tables as .xlsx file with seperate sheets for corr, pval, pval_fdr, and Corr_Centiles
+% xlsx_Filename = [data_dir '/tab_CorrPerGene_Pval_16p22q_MIST64.xlsx'];
+% sheet_name = 'Corr';
+% writetable(table_corr,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
+% sheet_name = 'Pval';
+% writetable(table_corr_pval,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
+% sheet_name = 'FDRPval';
+% writetable(table_corr_pval_fdr,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
+% sheet_name = 'CentilesCorr';
+% writetable(table_corr_centile,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
+
+
+%% Save: CorrPerGene results for 16p11.2 and 22q11.2 gene sets
+%        Corr, p-val, FDR-pval, Centiles, and FDR_pval_per_CNV_region
+
+nCNVgeneSets = length(opt_CNVgeneSets.cell_array_cnv_names);
+
+% Following 4 pairs (FC vs GeneSet) will be saved as sheets
+array_FC_v_CNVgeneSet = {'FC16p11_v_16p11Gene'; 'FC16p11_v_22q11Gene'; 
+                    'FC22q11_v_16p11Gene'; 'FC22q11_v_22q11Gene'; };
+
+% xlsx filename
+xlsx_Filename = [data_dir '/tab_CorrPerGene_16p_and_22q_GeneSetsOnly_MIST64.xlsx'];
+
+counter =1;
+
+% loop over the FC profiles (FC16p11 and FC22q11)
+for ind_mri =1:nMriMaps
+    
+% get the data for CorrPerGene    
+in_corr = table2array(table_corr(:,ind_mri));
+in_pval = table2array(table_corr_pval(:,ind_mri));
+in_pval_fdr_genomewide = table2array(table_corr_pval_fdr(:,ind_mri));
+in_corr_centile_genomewide = table2array(table_corr_centile(:,ind_mri));
+
+    % loop over GeneSets (16p11.2Gene and 22q11.2Gene)
+    for loop_geneSet =1:nCNVgeneSets
+
+        % find indices for CNVgeneSets from GeneSymAll
+        [GeneSymbCNV, indx_set_CNVgenes, ~] = intersect(string(GeneSymbAll),opt_CNVgeneSets.cell_array_geneSets{loop_geneSet,1});
+
+        Corr = in_corr(indx_set_CNVgenes);
+        Pval = in_pval(indx_set_CNVgenes);
+        FDRPvalGenomewide = in_pval_fdr_genomewide(indx_set_CNVgenes);
+        CentilesCorrGenomewide = in_corr_centile_genomewide(indx_set_CNVgenes);
+
+        % compute FDR corrected p-val (correct for CNV gene set only)
+        [~, crit_p, ~, FDRPvalCNVgeneset]=fdr_bh(Pval(:),fdr_threshold); % fdr
+
+        % create table for the CNV gene set and FC pair
+        table_corr_per_CNVgene = table(GeneSymbCNV,Corr,Pval,FDRPvalGenomewide,CentilesCorrGenomewide,FDRPvalCNVgeneset);
+        
+        % write as a sheet
+        sheet_name = array_FC_v_CNVgeneSet{counter,1};
+        writetable(table_corr_per_CNVgene,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',false);
+
+        counter = counter + 1;
+    end
+end
 
 
 %% Stats: Median Correlation for CNVgeneSets
@@ -118,7 +170,6 @@ writetable(table_corr_centile,xlsx_Filename,'sheet',sheet_name,'Range','A1','Wri
 % compute Median Correlation for 16p11.2 and 22q11.2 CNV gene sets using
 % CorrPerGene values for FC16p and FC22q 
 
-nCNVgeneSets = length(opt_CNVgeneSets.cell_array_cnv_names);
 
 array_FC_v_CNVgeneSet_names = {'FC16p_v_16pGene'; 'FC16p_v_22qGene'; 
                     'FC22q_v_16pGene'; 'FC22q_v_22qGene'; };
@@ -178,7 +229,7 @@ for ind_mri =1:nMriMaps
     array_stat_topk(ind_mri,1) = mean_stat;
     array_stat_pval_topk(ind_mri,1) = pval_stat;
     
- end
+end
 
 
 
