@@ -1,21 +1,22 @@
 
-%% Summary: PLSR geneExpression 
+%% Summary: PLSR FC-signatures (Y) vs geneExpression-patterns (X)
 %
 % Script to call Partial Least Square Regression (PLSR) 
 %          for
 %                a) 16p11.2 Deletion Functional Connectivity (FC) and 
 %                b) 22q11.2 Deletion Functional Connectivity (FC)
-% 
+%          RowMeans (nodal-profiles) and regional connectivity profiles
+%          and stats for specificity
 % 
 %%
 % Step1: load data: GeneExpression, FC beta maps, and CNVgeneSets
 % Step2: Call PLSR for FCrowmeans (nodal profile)
 %        *(use pre-computed Label-Shuffle null FC maps to compute p-value)
-%        -> save .xslx file with Corr, pval, pval-fdr, CentilesCorr
-%        -> use "scriptR_plot_HistogramCorrPerGene_16p22q.R" to make
-%        histogram plots for Correlations 
-% Step3: compute stats: a) median Corr per CNVgeneSet 
-%                       b) Extreme Rank (mean correlation for CNVgenes > 95th percentile for all genes)
+%        -> save .xslx file FC rowmeans (nodal) profiles: PCTVAR, PVAL
+%        -> save .xslx file FC regional connectivity profiles: PCTVAR, PVAL
+% 
+% PART B:
+% Step3: compute stats: a) Specificity: PLSR using pseudo CNVgeneSets
 %
 %%
 % Dependencies: This script uses functions defined in BasicFunc... .m files
@@ -64,7 +65,7 @@ ncomp =2;    % for FC rowmeans (nodal profile) ncomp varies from 1 to 4
              % keep results for ncomp=2
 
 cell_FC_beta_map_names = {'16p11del'; '22q11del'; };  %simplified names excluding 1_ or 3_
-array_FC_v_CNVgeneSet_names = {'FC16p_v_16pGene'; 'FC16p_v_22qGene'; 
+array_FCvCNVgeneSet_names = {'FC16p_v_16pGene'; 'FC16p_v_22qGene'; 
                     'FC22q_v_16pGene'; 'FC22q_v_22qGene'; };
 
 
@@ -141,7 +142,7 @@ for i=1:nMriMaps
         
         table_plsr = table(ROInames,PCTVAR,Pval,FDRpval);
 
-        sheet_name = array_FC_v_CNVgeneSet_names{counter,1};
+        sheet_name = array_FCvCNVgeneSet_names{counter,1};
         writetable(table_plsr,xlsx_Filename_regional,'sheet',sheet_name,'Range','A1','WriteRowNames',false);
                 
         counter = counter + 1;
@@ -163,4 +164,45 @@ tab_PCTVAR_nodal = array2table(cell2mat(cell_PCTVAR_nodal_profile_v_cnv_genes),'
 sheet_name = 'PCTVARnodalPLSRncomp2';
 writetable(tab_PCTVAR_nodal,xlsx_Filename_nodal,'sheet',sheet_name,'Range','A1','WriteRowNames',true);        
 
+
+
+%% PART B: Specificity Stats
+%% Step 3: Run PLSR (RowMeans/Nodal profiles) for Pseudo CNVgeneSets  
+
+nIterNull = 10000;
+
+array_FCvCNVgeneSet_names = {'FC16p_v_16pGene'; 'FC16p_v_22qGene'; 
+                    'FC22q_v_16pGene'; 'FC22q_v_22qGene'; };
+                
+arrayPCTVAR = zeros(length(array_FCvCNVgeneSet_names),1);
+arrayRandGeneSetPval = zeros(length(array_FCvCNVgeneSet_names),1);
+
+counter =1;
+% loop over FC beta maps
+for i=1:nMriMaps
+    % FC beta map nodal profile
+    in_nodal_profile = opt_FCmaps.cell_nodal_profiles{i,1};
+    
+    % loop over CNVgeneSets
+    for j=1:nCNVgeneSets
+        % CNV gene list
+        CNVgeneList = opt_CNVgeneSets.cell_array_geneSets{j,1};  
+        
+        % PLSR Specificity for FC rowmeans(nodal) profiles (Pseudo CNVgeneSets)
+        [res_PLSR_rand_cnv_genes] = fComputePLSR_inMRIprofile_v_randCNVgeneSets(ROIxGeneExp_AHBA_all,GeneSymbAll,CNVgeneList,in_nodal_profile,flag_zscore,nIterNull);
+
+        arrayPCTVAR(counter,1) = res_PLSR_rand_cnv_genes.PCTVAR_ncomp2;    
+        arrayRandGeneSetPval(counter,1) = res_PLSR_rand_cnv_genes.PLSR_specificity_pval;
+                         
+        counter = counter + 1;
+    end
+    
+end
+
+% Table (stats) for Specificity of PLSR for CNVgeneSets vs FC rowmeans (nodal) profile
+table_specificity_PLSR = table(array_FCvCNVgeneSet_names,arrayPCTVAR,arrayRandGeneSetPval);
+
+% Display table to command line
+disp('Stats: Specificity of PLSR for CNVgeneSets');
+disp(table_specificity_PLSR);
 

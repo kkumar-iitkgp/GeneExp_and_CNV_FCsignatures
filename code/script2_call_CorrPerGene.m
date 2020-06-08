@@ -5,6 +5,9 @@
 %          for
 %                a) 16p11.2 Deletion Functional Connectivity (FC) and 
 %                b) 22q11.2 Deletion Functional Connectivity (FC)
+%          and compute stats for 
+%                a) Specificity: median correlation for CNV region genes
+%                b) Extreme ranked genes per CNV: mean corr for top k genes
 % 
 %%
 % Step1: load data: GeneExpression, FC beta maps, and CNVgeneSets
@@ -16,6 +19,8 @@
 %           pval-FDR-CNVgenes for 16p11.2 and 22q11.2 CNV gene sets
 %        %%%Run externally:<"scriptR_plot_HistogramCorrPerGene_16p22q.R" 
 %                       to make histogram plots for Correlations>
+%
+% PART B: Stats
 % Step3: compute stats: a) median Corr per CNVgeneSet 
 %                       b) Extreme Rank (mean correlation for CNVgenes > 95th percentile for all genes)
 %
@@ -105,15 +110,15 @@ table_corr_pval_fdr = array2table(cell2mat(cell_pval_fdr),'VariableNames',cell_F
 table_corr_centile = array2table(cell2mat(cell_corr_centiles),'VariableNames',cell_FC_beta_map_names,'RowNames',GeneSymbAll);
 
 % save tables as .xlsx file with seperate sheets for corr, pval, pval_fdr, and Corr_Centiles
-% xlsx_Filename = [data_dir '/tab_CorrPerGene_Pval_16p22q_MIST64.xlsx'];
-% sheet_name = 'Corr';
-% writetable(table_corr,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
-% sheet_name = 'Pval';
-% writetable(table_corr_pval,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
-% sheet_name = 'FDRPval';
-% writetable(table_corr_pval_fdr,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
-% sheet_name = 'CentilesCorr';
-% writetable(table_corr_centile,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
+xlsx_Filename = [data_dir '/tab_CorrPerGene_All_Genes_MIST64.xlsx'];
+sheet_name = 'Corr';
+writetable(table_corr,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
+sheet_name = 'Pval';
+writetable(table_corr_pval,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
+sheet_name = 'FDRPval';
+writetable(table_corr_pval_fdr,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
+sheet_name = 'CentilesCorr';
+writetable(table_corr_centile,xlsx_Filename,'sheet',sheet_name,'Range','A1','WriteRowNames',true);
 
 
 %% Save: CorrPerGene results for 16p11.2 and 22q11.2 gene sets
@@ -126,7 +131,7 @@ array_FC_v_CNVgeneSet = {'FC16p11_v_16p11Gene'; 'FC16p11_v_22q11Gene';
                     'FC22q11_v_16p11Gene'; 'FC22q11_v_22q11Gene'; };
 
 % xlsx filename
-xlsx_Filename = [data_dir '/tab_CorrPerGene_16p_and_22q_GeneSetsOnly_MIST64.xlsx'];
+xlsx_Filename = [data_dir '/tab_CorrPerGene_CNV_GeneSetsOnly_MIST64.xlsx'];
 
 counter =1;
 
@@ -165,13 +170,14 @@ in_corr_centile_genomewide = table2array(table_corr_centile(:,ind_mri));
 end
 
 
-%% Stats: Median Correlation for CNVgeneSets
+%% PART B: Stats
+%% Stats (Specificity): Median Correlation for CNVgeneSets
 
 % compute Median Correlation for 16p11.2 and 22q11.2 CNV gene sets using
 % CorrPerGene values for FC16p and FC22q 
 
 
-array_FC_v_CNVgeneSet_names = {'FC16p_v_16pGene'; 'FC16p_v_22qGene'; 
+FCvCNVgeneSet_names = {'FC16p_v_16pGene'; 'FC16p_v_22qGene'; 
                     'FC22q_v_16pGene'; 'FC22q_v_22qGene'; };
 
 nIterNull = 10000;
@@ -200,12 +206,22 @@ in_stat = in_corr(:);
     end
 end
 
+% Table (stats) for Specificity of Median Correlation per CNV (and FC)
+table_specificity_median_corr = table(FCvCNVgeneSet_names,array_stat,array_stat_pval);
+
+% Display table to command line
+disp('Stats: Specificity of Median Correlation for CNVgeneSets');
+disp(table_specificity_median_corr);
+
 
 %% Stats: Extreme ranked CNV genes
 
 % compute mean correlation for CNVgenes > 95th percentile
 nIterNull = 10000;
 in_prctile_threshold = 95;
+
+FCvCNVgeneSet_names = {'FC16p_v_16pGene';  
+                     'FC22q_v_22qGene'; };
 
 cell_array_rand_stat = cell(nMriMaps,1);
 array_stat_topk = zeros(nMriMaps,1);
@@ -231,5 +247,10 @@ for ind_mri =1:nMriMaps
     
 end
 
+% Table (stats) for Extreme rank genes Correlation (per CNV)
+table_extreme_corr_stat_per_CNV = table(FCvCNVgeneSet_names,array_stat_topk,array_stat_pval_topk);
 
+% Display table to command line
+disp('Stats: Mean Correlation of Extreme Ranked CNVgenes');
+disp(table_extreme_corr_stat_per_CNV);
 
