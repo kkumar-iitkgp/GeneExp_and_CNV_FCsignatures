@@ -6,7 +6,7 @@ Please cite: [Moreau, Clara*, Urchs, Sebastian*, et al. "Neuropsychiatric mutati
 
 
 ## Dependencies
-The code is written in [MATLAB](https://www.mathworks.com/products/matlab.html), and also includes the data required to reproduce the reported analysis and stats. The scripts can be run directly to reproduce the Partial Least Square Regression (PLSR) analysis and Correlation per Gene analysis. In addition a R script is included to make Histogram plots using [ggplot2](https://ggplot2.tidyverse.org/) and [ggrepel](https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html).
+The code is written and tested in [MATLAB](https://www.mathworks.com/products/matlab.html) R2019b, and also includes the data required to reproduce the reported analysis and stats. The scripts can be run directly to reproduce the Partial Least Square Regression (PLSR) analysis and Correlation per Gene analysis. In addition a R script is included to make Histogram plots using [ggplot2](https://ggplot2.tidyverse.org/) and [ggrepel](https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html).
 
 ## Analysis
 To call Partial Least Square Regression (PLSR) and Correlation Per Gene analysis.
