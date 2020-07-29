@@ -173,15 +173,23 @@ nIterNull = 10000;
 
 array_FCvCNVgeneSet_names = {'FC16p_v_16pGene'; 'FC16p_v_22qGene'; 
                     'FC22q_v_16pGene'; 'FC22q_v_22qGene'; };
-                
-arrayPCTVAR = zeros(length(array_FCvCNVgeneSet_names),1);
-arrayRandGeneSetPval = zeros(length(array_FCvCNVgeneSet_names),1);
+
+% Specificity of PCTVAR of rowmeans (Global) connectivity profiles
+arrayPCTVAR_global = zeros(length(array_FCvCNVgeneSet_names),1);
+arrayRandGeneSetPval_global = zeros(length(array_FCvCNVgeneSet_names),1);
+
+% Specificity of PCTVAR of Regional connectivity profiles
+arrayPCTVAR_regional = zeros(length(ROInames),length(array_FCvCNVgeneSet_names));
+arrayRandGeneSetPval_regional = zeros(length(ROInames),length(array_FCvCNVgeneSet_names),1);
 
 counter =1;
 % loop over FC beta maps
 for i=1:nMriMaps
     % FC beta map nodal profile
     in_nodal_profile = opt_FCmaps.cell_nodal_profiles{i,1};
+    
+    % FC beta map (regional connectivity profiles)
+    in_BetaMap = opt_FCmaps.cell_beta_maps_ROIxROI{i,1};
     
     % loop over CNVgeneSets
     for j=1:nCNVgeneSets
@@ -191,18 +199,38 @@ for i=1:nMriMaps
         % PLSR Specificity for FC rowmeans(nodal) profiles (Pseudo CNVgeneSets)
         [res_PLSR_rand_cnv_genes] = fComputePLSR_inMRIprofile_v_randCNVgeneSets(ROIxGeneExp_AHBA_all,GeneSymbAll,CNVgeneList,in_nodal_profile,flag_zscore,nIterNull);
 
-        arrayPCTVAR(counter,1) = res_PLSR_rand_cnv_genes.PCTVAR_ncomp2;    
-        arrayRandGeneSetPval(counter,1) = res_PLSR_rand_cnv_genes.PLSR_specificity_pval;
-                         
+        arrayPCTVAR_global(counter,1) = res_PLSR_rand_cnv_genes.PCTVAR_ncomp2;    
+        arrayRandGeneSetPval_global(counter,1) = res_PLSR_rand_cnv_genes.PLSR_specificity_pval;
+                       
+        % Regional Connectivity Profiles
+        for loop_roi =1:length(ROInames)
+           in_regional_profile = in_BetaMap(:,loop_roi);
+           [res_PLSR_rand_cnv_genes] = fComputePLSR_inMRIprofile_v_randCNVgeneSets(ROIxGeneExp_AHBA_all,GeneSymbAll,CNVgeneList,in_regional_profile,flag_zscore,nIterNull);
+
+            arrayPCTVAR_regional(loop_roi,counter) = res_PLSR_rand_cnv_genes.PCTVAR_ncomp2;    
+            arrayRandGeneSetPval_regional(loop_roi,counter) = res_PLSR_rand_cnv_genes.PLSR_specificity_pval;
+        end
+        
         counter = counter + 1;
     end
     
 end
 
 % Table (stats) for Specificity of PLSR for CNVgeneSets vs FC rowmeans (nodal) profile
-table_specificity_PLSR = table(array_FCvCNVgeneSet_names,arrayPCTVAR,arrayRandGeneSetPval);
-
+table_specificity_PLSR = table(array_FCvCNVgeneSet_names,arrayPCTVAR_global,arrayRandGeneSetPval_global);
+save([ data_dir '/table_specificity_PLSR_global_connectivity.mat'],'table_specificity_PLSR','-v7.3');
 % Display table to command line
-disp('Stats: Specificity of PLSR for CNVgeneSets');
-disp(table_specificity_PLSR);
+%disp('Stats: Specificity of PLSR for CNVgeneSets');
+%disp(table_specificity_PLSR);
+
+% Tables PLSR Regional Specificity Analysis: Random GeneSets
+table_regional_specificty_PCTVAR = array2table(arrayPCTVAR_regional,'VariableNames',array_FCvCNVgeneSet_names);
+table_regional_specificty_PCTVAR = [ ROInames table_regional_specificty_PCTVAR];
+
+table_regional_specificty_PvalRandGeneSet = array2table(arrayRandGeneSetPval_regional,'VariableNames',array_FCvCNVgeneSet_names);
+table_regional_specificty_PvalRandGeneSet = [ ROInames table_regional_specificty_PvalRandGeneSet ];
+
+save([ data_dir '/table_specificity_PLSR_regional_connectivity.mat'],'table_regional_specificty_PCTVAR','table_regional_specificty_PvalRandGeneSet','-v7.3');
+
+
 
