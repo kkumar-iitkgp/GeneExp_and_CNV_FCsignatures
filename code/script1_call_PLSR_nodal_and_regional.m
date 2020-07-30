@@ -216,21 +216,26 @@ for i=1:nMriMaps
     
 end
 
-% Table (stats) for Specificity of PLSR for CNVgeneSets vs FC rowmeans (nodal) profile
+% Create Table: Specificity of PLSR for CNVgeneSets vs FC rowmeans (nodal) profile
 table_specificity_PLSR = table(array_FCvCNVgeneSet_names,arrayPCTVAR_global,arrayRandGeneSetPval_global);
-save([ data_dir '/table_specificity_PLSR_global_connectivity.mat'],'table_specificity_PLSR','-v7.3');
-% Display table to command line
-%disp('Stats: Specificity of PLSR for CNVgeneSets');
-%disp(table_specificity_PLSR);
+%save([ data_dir '/table_specificity_PLSR_global_connectivity.mat'],'table_specificity_PLSR','-v7.3');
+% write as a csv file
+writetable(table_specificity_PLSR,[ data_dir '/table_specificity_PLSR_nodal_profiles.csv']) ;
 
-% Tables PLSR Regional Specificity Analysis: Random GeneSets
+% Create Tables:Specificity of PLSR for Regional Connectivity profiles 
+% Table for % variance explained by PLSR using CNV region Genes
 table_regional_specificty_PCTVAR = array2table(arrayPCTVAR_regional,'VariableNames',array_FCvCNVgeneSet_names);
 table_regional_specificty_PCTVAR = [ ROInames table_regional_specificty_PCTVAR];
 
+% Table for p-value for variance-explained by PLSR using CNV region genes vs 10,000 random GeneSets
 table_regional_specificty_PvalRandGeneSet = array2table(arrayRandGeneSetPval_regional,'VariableNames',array_FCvCNVgeneSet_names);
 table_regional_specificty_PvalRandGeneSet = [ ROInames table_regional_specificty_PvalRandGeneSet ];
 
-save([ data_dir '/table_specificity_PLSR_regional_connectivity.mat'],'table_regional_specificty_PCTVAR','table_regional_specificty_PvalRandGeneSet','-v7.3');
+%save([ data_dir '/table_specificity_PLSR_regional_connectivity.mat'],'table_regional_specificty_PCTVAR','table_regional_specificty_PvalRandGeneSet','-v7.3');
+% write as csv files
+writetable(table_regional_specificty_PCTVAR,[ data_dir '/table_regional_specificty_PCTVAR.csv']) ;
+writetable(table_regional_specificty_PvalRandGeneSet,[ data_dir '/table_regional_specificty_PvalRandGeneSet.csv']) ;
+
 
 
 
